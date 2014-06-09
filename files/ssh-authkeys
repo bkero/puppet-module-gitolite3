@@ -50,7 +50,8 @@ my %seen = map { $_ => 'a non-gitolite key' } ( fp(@non_gl) );
 chomp( my @pubkeys = `find keydir/ -type f -name "*.pub" | sort` );
 my @gl_keys = ();
 for my $f (@pubkeys) {
-    my $fp = fp($f);
+    my $fp = fp($f) || "";
+    if ($fp eq "") { next } ;
     if ( $seen{$fp} ) {
         _warn "$f duplicates $seen{$fp}, sshd will ignore it";
     } else {
@@ -114,7 +115,8 @@ sub fp_file {
     my $f  = shift;
     my $fp = `ssh-keygen -l -f '$f'`;
     chomp($fp);
-    _die "fingerprinting failed for '$f'" unless $fp =~ /([0-9a-f][0-9a-f](:[0-9a-f][0-9a-f])+)/;
+    #_die "fingerprinting failed for '$f'" unless $fp =~ /([0-9a-f][0-9a-f](:[0-9a-f][0-9a-f])+)/;
+    print "fingerprinting failed for '$f'" unless $fp =~ /([0-9a-f][0-9a-f](:[0-9a-f][0-9a-f])+)/;
     $fp = $1;
     return $fp;
 }
