@@ -6,6 +6,7 @@
 #   root: Directory to store root filesystem (default: /var/lib/gitolite)
 #   user: User to run gitolite as (default: gitolite3)
 #   group: Group to run gitolite as (default: gitolite3)
+#   showall: List all repositories in gitweb (default: false)
 #
 #   LDAP-centric parameters
 #   ldap: Whether to use ldap to manage users (default: false)
@@ -13,6 +14,11 @@
 #   ldap_user: LDAP's bind username (default: '')
 #   ldap_pass: LDAP's bind password (default: '')
 #   ldap_searchbase: LDAP's searchbase (default: '')
+#
+#   SSL-centric parameters
+#   ssl: Use SSL or not (default: false)
+#   sslcert: Location of certificate (default: '/etc/httpd/ssl/gitweb.crt')
+#   sslkey: Location of SSL private key (default: '/etc/httpd/ssl/gitweb.key')
 #
 # Actions:
 #
@@ -35,14 +41,18 @@
 class gitolite3 ($root='/var/lib/gitolite3',
                  $user='gitolite3',
                  $group='gitolite3',
+                 $showall=false,
                  $ldap=false,
                  $ldap_host='',
                  $ldap_user='',
                  $ldap_pass='',
-                 $ldap_searchbase=''
+                 $ldap_searchbase='',
+                 $ssl=false,
+                 $sslcert='/etc/httpd/ssl/gitweb.crt',
+                 $sslkey='/etc/httpd/ssl/gitweb.key'
     ) {
 
-    if ! defined(File[$gitolite3::root]) {
+    if defined(File[$gitolite3::root]) == false {
         file { $gitolite3::root:
             ensure => present,
             owner  => $gitolite3::user,
@@ -65,6 +75,7 @@ class gitolite3 ($root='/var/lib/gitolite3',
         if $ldap_searchbase == '' {
             fail('You probably need a bind search base (ldap_searchbase param)')
         }
+        class { 'gitolite3::user': before => Class['gitolite3::config']; }
     } else {
         $no_setup_authkeys = 0
         $enable_external_membership_program = false
@@ -82,49 +93,58 @@ class gitolite3 ($root='/var/lib/gitolite3',
     #}
     #file {
     #    $gitolite3::root:
-    #        mode => 755,
+    #        mode => '0755',
     #        ensure => directory;
     #}
 
-    if $gitolite3::root != "/var/lib/gitolite3" {
-        file { "/var/lib/gitolite3":
+    if $gitolite3::root != '/var/lib/gitolite3' {
+        file { '/var/lib/gitolite3':
             ensure => link,
             path   => "/var/lib/gitolite3",
-            target => "$gitolite3::root",
+            target => $gitolite3::root,
         }
     }
 
     file {
         'privdir':
             ensure  => directory,
-            path    => "$gitolite3::root/.gitolite",
+            path    => "${gitolite3::root}/.gitolite",
             owner   => 'gitolite3',
             group   => 'gitolite3',
             require => Class['gitolite3::packages'];
 
         'keydir':
             ensure  => directory,
-            path    => "$gitolite3::root/.gitolite/keydir",
-            before  => Class['gitolite3::user'],
+            path    => "${gitolite3::root}/.gitolite/keydir",
             owner   => 'gitolite3',
             group   => 'gitolite3',
             require => File['privdir'];
 
         'logs':
             ensure  => directory,
-            path    => "$gitolite3::root/.gitolite/logs",
-            before  => Class['gitolite3::user'],
+            path    => "${gitolite3::root}/.gitolite/logs",
             owner   => 'gitolite3',
             group   => 'gitolite3',
             require => File['privdir'];
     }
 
     class {
-        'gitolite3::user':
-            before => Class['gitolite3::config'];
-        'gitolite3::packages':
-            before => [Class['gitolite3::config'], Class['gitolite3::user']];
-        'gitolite3::config':;
+        'gitolite3::packages': before => Class['gitolite3::config'];
+        'gitolite3::config':
+            user                               => $user,
+            group                              => $group,
+            ldap                               => $ldap,
+            ldap_host                          => $ldap_host,
+            ldap_user                          => $ldap_user,
+            ldap_pass                          => $ldap_pass,
+            ldap_searchbase                    => $ldap_searchbase,
+            ssl                                => $ssl,
+            sslcert                            => $sslcert,
+            sslkey                             => $sslkey,
+            root                               => $root,
+            no_setup_authkeys                  => $no_setup_authkeys,
+            enable_external_membership_program => $enable_external_membership_program,
+            showall                            => $showall;
     }
 }
 
