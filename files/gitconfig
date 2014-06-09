@@ -1,0 +1,5 @@
+[pack]
+    windowMemory = 512
+[receive]
+    denyDeletes = true
+    denyNonFastForwards = true
