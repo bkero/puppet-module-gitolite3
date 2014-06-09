@@ -1,5 +1,8 @@
+# NOTE: File managed by puppet
+
 <VirtualHost *:80>
-    ServerName git.bke.ro
+    ServerName git.mozilla.org
+    ServerAlias <%= scope.lookupvar('::fqdn') %>
 
     DocumentRoot /var/www/gitweb-caching
     
@@ -26,6 +29,10 @@
     # Set up appropriate GIT environments
     SetEnv GIT_PROJECT_ROOT <%= root %>/repositories
     SetEnv GIT_HTTP_EXPORT_ALL
+    SetEnv GL_BINDIR /usr/bin
+    SetEnv GL_RC <%= root %>/.gitolite.rc
+
+    # Set up appropriate gitolite environment
     SetEnv GITOLITE_HTTP_HOME <%= root %>
 
     DirectoryIndex gitweb.cgi
@@ -42,11 +49,15 @@
                             git-(upload|receive)-pack))$" \
             /var/www/bin/gitolite-suexec-wrapper.sh/$1
 
+    # This serves bundles
+    AliasMatch "(?x)^/(.*)/clone.bundle" /var/lib/gitolite3/repositories/$1.git/clone.bundle
+
+    # We need gl-auth-command executable
     <Directory "/var/www/bin">
-        <Files "gitolite-suexec-wrapper.sh">
-            Order allow,deny
-            Allow from all
-        </Files>
+    <Files "gitolite-suexec-wrapper.sh">
+        Order allow,deny
+        Allow from all
+    </Files>
     </Directory>
 
     # Set up authentication to taste
