@@ -8,13 +8,13 @@
 # Set the path to git projects.  This is an absolute filesystem path which will
 # be prepended to the project path.
 our $projectroot = "<%= root %>/repositories";
-our $projects_list = "<%= root %>/projects.list";
-our $strict_export = "true";
+<% if showall == true %># <% end %>our $projects_list = "<%= root %>/projects.list";
+<% if showall == true %># <% end %>our $strict_export = "true";
 
 # Set the list of git base URLs used for URL to where fetch project from, i.e.
 # the full URL is "$git_base_url/$project". By default this is empty
-our @git_base_url_list = qw(ssh://gitolite3@bke.ro
-                            http://git.bke.ro/git);
+our @git_base_url_list = qw(ssh://gitolite3@git.mozilla.org
+                            https://git.mozilla.org);
 #our @git_base_url_list = qw(git://git.example.com
 #                            ssh://git.example.com/var/lib/git);
 
@@ -25,6 +25,13 @@ our @git_base_url_list = qw(ssh://gitolite3@bke.ro
 # Allow projects to override the default setting via git config file.
 # Example: gitweb.blame = 0|1;
 #$feature{'blame'}{'override'} = 1;
+
+# Turn raw format off until https://bugzilla.mozilla.org/show_bug.cgi?id=704551 is fixed
+$feature{'blob_plain'}{'default'} = 0;
+
+# fs traversing limit for getting project list
+# the nubmer is relative to the projectroot
+our $project_maxdepth = 10;
 
 # Disable the 'snapshot' link, providing a compressed archive of any tree. This
 # can potentially generate high traffic if you have large project. Enabled for
@@ -55,3 +62,7 @@ our @git_base_url_list = qw(ssh://gitolite3@bke.ro
 # Allow projects to override the default setting via git config file.
 # Example: gitweb.pickaxe = 0|1;
 #$feature{'pickaxe'}{'override'} = 1;
+
+#our $cache_enable = 1;
+#our $backgroundCache = 0;
+#our $cacheDoFork = 0;
