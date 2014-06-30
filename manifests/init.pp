@@ -100,7 +100,7 @@ class gitolite3 ($root='/var/lib/gitolite3',
     if $gitolite3::root != '/var/lib/gitolite3' {
         file { '/var/lib/gitolite3':
             ensure => link,
-            path   => "/var/lib/gitolite3",
+            path   => '/var/lib/gitolite3',
             target => $gitolite3::root,
         }
     }
